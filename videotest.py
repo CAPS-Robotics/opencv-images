@@ -72,21 +72,9 @@ vid.release()
 # Destroy all the windows 
 cv.destroyAllWindows() 
 
-""""if not detect:
-    print("Nothing")
-else:
-  c0 = detect[0].center
-  c1 = detect[1].center
-  c0, c1 = tuple([int(c0[0]),int(c0[1])]),tuple([int(c1[0]),int(c1[1])])
-  print(c0,c1)
-  for tag in detect:
-
-    midp = (int(c0[0]+abs((c1[0]-c0[0])/2)),int(c0[1]+abs((c1[1]-c0[1])/2)))
-  
-    image = plotPoint(image, tag.center, CENTER_COLOR)
-    image = plotPoint(image, midp, CENTER_COLOR)
-    for corner in tag.corners:
-      image = plotPoint(image, corner, CORNER_COLOR)
-    
-image = cv.line(image, c0, c1, (0, 255, 0), 3)
-cv_im(image) """
+"""
+def plotText(image, center, color, text):
+    center = (int(center[0]) + 4, int(center[1]) - 4)
+    return cv2.putText(image, str(text), center, cv2.FONT_HERSHEY_SIMPLEX,
+                       1, color, 3)
+"""
