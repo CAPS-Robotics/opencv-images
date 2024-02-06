@@ -73,8 +73,13 @@ vid.release()
 cv.destroyAllWindows() 
 
 """
-def plotText(image, center, color, text):
-    center = (int(center[0]) + 4, int(center[1]) - 4)
-    return cv2.putText(image, str(text), center, cv2.FONT_HERSHEY_SIMPLEX,
-                       1, color, 3)
+p1 = results[i].corners[0]
+p2 = results[i].corners[3] # side 1 is abs(p2-p1)
+p3 = results[i].corners[1] # side 2 is abs(p4-p3)
+p4 = results[i].corners[2]
+
+s1 = abs(p2[1]-p1[1])
+s2 = abs(p4[1]-p3[1])
+
+val = s1/s2
 """
