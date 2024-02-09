@@ -1,6 +1,7 @@
 import cv2 as cv
 import time  
 import apriltag
+import math
   
 # define a video capture object 
 vid = cv.VideoCapture(0) 
@@ -35,6 +36,8 @@ def plotPoint(image, center, color):
 	color,
 	3)
 	return image
+
+img_c = 0
 
 while(True): 
     # Capture the video frame 
@@ -72,7 +75,37 @@ while(True):
         s2 = abs(c4[1]-c3[1])
 
         val = s1/s2
-        print(tag.tag_id,-255.5*val+350.7)
+        
+        # sides value to angle
+        ang = -255.5*val+350.7
+        
+        # area
+        # A = abs(math.ceil(abs(c1[0]-c2[0])*4)*math.ceil(abs(c4[1]-c1[1])*4))
+        
+        d1 = tag.corners[0]
+        d2 = tag.corners[1] # distance needs it diff from angles
+        d3 = tag.corners[2] # clockwise order
+        d4 = tag.corners[3]
+        
+        A = ((d1[0]*d2[1]-d2[0]*d1[1])+
+             (d2[0]*d3[1]-d3[0]*d2[1])+
+             (d3[0]*d4[1]-d4[0]*d3[1])+
+             (d4[0]*d1[1]-d1[0]*d4[1]))/2
+        # area to dist
+        
+        f = 20 # focal len, next try 60
+        
+        # calibrate values
+        f_x = 315.48326733
+        f_y = 338.89718663
+        c_x = 323.39820746
+        c_y = 315.32874766
+        
+        pxmm = ((f_x+f_y)/2)/f # average fx fy, then divide by focal len to get the pxmm
+        
+        #print(f,A,pxmm)
+        dist = 161.5 * f / (A/pxmm) # in mm
+        dist = 19.19*dist**0.5 # if the tag is straight on decimal digit accuracy
         
         # corner marks
         for corner in tag.corners:
@@ -89,12 +122,18 @@ while(True):
           midp = (int(c0[0]+c1[0])/2,int(c0[1]+c1[1])/2)
           image = plotPoint(image, midp, CENTER_COLOR)
           #print(c0,c1)
+        
+        print(f"tag {tag.tag_id} with angle: {ang} with distance: {dist}")
       
     cv.imshow('frame', image) 
       
     # the 'q' button is set as the 
     # quitting button you may use any 
     # desired button of your choice 
+    if cv.waitKey(140) & 0xFF == ord('i'): 
+        img_c +=1
+        cv.imwrite(f"i{img_c}.jpg", image)
+        print("saved")
     if cv.waitKey(140) & 0xFF == ord('q'): 
         break
     if ret==False:
