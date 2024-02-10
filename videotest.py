@@ -2,6 +2,19 @@ import cv2 as cv
 import time  
 import apriltag
 import math
+import json
+
+import time
+import wpilib
+from networktables import NetworkTables as nt
+
+import logging
+
+# network tables
+logging.basicConfig(level=logging.DEBUG)
+
+nt.initialize(server="roborio-2410-frc.local")
+sd = nt.getTable("SmartDashboard")
   
 # define a video capture object 
 vid = cv.VideoCapture(0) 
@@ -59,11 +72,21 @@ while(True):
     if not detect:
       #print("Nothing")
       image = frame
+      image = cv.line(image, [int(w/2),0], [int(w/2), h], (0, 255, 0), 3)
+      
+      info = {"id":"none","angle":"N/A","dist":"N/A","(s1/s2)/dist":"N/A"}
+      print(json.dumps(info))
+      
+      sd.putNumber("id", -1)
+      sd.putNumber("angle", 1000)
+      sd.putNumber("dist", -1)
+      sd.putNumber("aprilDist", -1)
     else:
       #print(detect)
       for tag in detect:
         
         image = plotPoint(image, tag.center, CENTER_COLOR)
+        image = cv.line(image, [int(w/2),0], [int(w/2), h], (0, 255, 0), 3)
         
         # angle
         c1 = tag.corners[0]
@@ -71,8 +94,8 @@ while(True):
         c3 = tag.corners[1] # side 2 is abs(p4-p3)
         c4 = tag.corners[2]
 
-        s1 = abs(c2[1]-c1[1])
-        s2 = abs(c4[1]-c3[1])
+        s1 = math.dist(c2,c1) #abs(c2[1]-c1[1])
+        s2 = math.dist(c4,c3) #abs(c4[1]-c3[1])
 
         val = s1/s2
         
@@ -80,7 +103,6 @@ while(True):
         ang = -255.5*val+350.7
         
         # area
-        # A = abs(math.ceil(abs(c1[0]-c2[0])*4)*math.ceil(abs(c4[1]-c1[1])*4))
         
         d1 = tag.corners[0]
         d2 = tag.corners[1] # distance needs it diff from angles
@@ -93,13 +115,13 @@ while(True):
              (d4[0]*d1[1]-d1[0]*d4[1]))/2
         # area to dist
         
-        f = 20 # focal len, next try 60
+        f = 60 # focal len, next try 60
         
         # calibrate values
-        f_x = 315.48326733
-        f_y = 338.89718663
-        c_x = 323.39820746
-        c_y = 315.32874766
+        f_x = 315.48326733 #1099.227
+        f_y = 338.89718663 #1104.536
+        c_x = 323.39820746 #232.016
+        c_y = 315.32874766 #185.441
         
         pxmm = ((f_x+f_y)/2)/f # average fx fy, then divide by focal len to get the pxmm
         
@@ -122,8 +144,14 @@ while(True):
           midp = (int(c0[0]+c1[0])/2,int(c0[1]+c1[1])/2)
           image = plotPoint(image, midp, CENTER_COLOR)
           #print(c0,c1)
+          
+        info = {"id":tag.tag_id,"angle":ang,"dist":dist,"(s1/s2)/dist":(val/dist)}
+        print(json.dumps(info))
         
-        print(f"tag {tag.tag_id} with angle: {ang} with distance: {dist}")
+        sd.putNumber("id", tag.tag_id)
+        sd.putNumber("angle", ang)
+        sd.putNumber("dist", dist)
+        sd.putNumber("aprilDist", val/dist)
       
     cv.imshow('frame', image) 
       
