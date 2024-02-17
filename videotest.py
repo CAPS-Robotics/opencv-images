@@ -176,3 +176,14 @@ while(True):
   
 # After the loop release the cap object 
 vid.release() 
+
+def transpose(array,val):
+    # shift element forward
+    for i in range(len(array)):
+        if i!= len(array)-1:
+            array[i] = array[i+1]
+
+    # set last value        
+    array[-1]=val
+
+    return array
